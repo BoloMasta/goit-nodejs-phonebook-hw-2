@@ -22,5 +22,17 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "5.2.0",
     "nodemon": "2.0.15"
-  }
+  },
+  "description": "Виконайте форк цього репозиторію для виконання домашніх завдань (2-6)\r Форк створить репозиторій на вашому http://github.com",
+  "main": ".eslintrc.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BoloMasta/goit-nodejs-phonebook-hw-2.git"
+  },
+  "author": "John Doe",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BoloMasta/goit-nodejs-phonebook-hw-2/issues"
+  },
+  "homepage": "https://github.com/BoloMasta/goit-nodejs-phonebook-hw-2#readme"
 }
