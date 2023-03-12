@@ -1,13 +1,11 @@
 const express = require("express");
-
 const router = express.Router();
 
 const contactsFunctions = require("../../models/contacts");
-
 const {
   validateCreateContact,
   validateUpdateContact,
-} = require("../../validator");
+} = require("../../models/validator");
 
 const checkContactId = (contact, contactId, res) => {
   if (!contact) {
