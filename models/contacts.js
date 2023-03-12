@@ -14,11 +14,11 @@ const getContactById = async (contactId) => {
 
 const removeContact = async (contactId) => {
   const contacts = await listContacts();
-  const idx = contacts.findIndex((item) => item.id === contactId);
-  if (idx === -1) {
+  const index = contacts.findIndex((item) => item.id === contactId);
+  if (index === -1) {
     return null;
   }
-  const [contact] = contacts.splice(idx, 1);
+  const [contact] = contacts.splice(index, 1);
   await fs.writeFile("./contacts.json", JSON.stringify(contacts));
   return contact;
 };
@@ -33,13 +33,13 @@ const addContact = async (body) => {
 
 const updateContact = async (contactId, body) => {
   const contacts = await listContacts();
-  const idx = contacts.findIndex((item) => item.id === contactId);
-  if (idx === -1) {
+  const index = contacts.findIndex((item) => item.id === contactId);
+  if (index === -1) {
     return null;
   }
-  contacts[idx] = { ...contacts[idx], ...body };
+  contacts[index] = { ...contacts[index], ...body };
   await fs.writeFile("./contacts.json", JSON.stringify(contacts));
-  return contacts[idx];
+  return contacts[index];
 };
 
 module.exports = {
