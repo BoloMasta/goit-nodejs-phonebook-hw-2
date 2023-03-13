@@ -1,7 +1,7 @@
 const fs = require("fs/promises");
 
 const listContacts = async () => {
-  const data = await fs.readFile("./models/contacts.json", "utf-8");
+  const data = await fs.readFile("./controller/contacts.json", "utf-8");
   const contacts = JSON.parse(data);
   return contacts;
 };
@@ -19,7 +19,7 @@ const removeContact = async (contactId) => {
     return null;
   }
   const [contact] = contacts.splice(index, 1);
-  await fs.writeFile("./models/contacts.json", JSON.stringify(contacts));
+  await fs.writeFile("./controller/contacts.json", JSON.stringify(contacts));
   return contact;
 };
 
@@ -27,7 +27,7 @@ const addContact = async (body) => {
   const contacts = await listContacts();
   const newContact = { id: `${contacts.length + 1}`, ...body };
   contacts.push(newContact);
-  await fs.writeFile("./models/contacts.json", JSON.stringify(contacts));
+  await fs.writeFile("./controller/contacts.json", JSON.stringify(contacts));
   return newContact;
 };
 
@@ -38,7 +38,7 @@ const updateContact = async (contactId, body) => {
     return null;
   }
   contacts[index] = { ...contacts[index], ...body };
-  await fs.writeFile("./models/contacts.json", JSON.stringify(contacts));
+  await fs.writeFile("./controller/contacts.json", JSON.stringify(contacts));
   return contacts[index];
 };
 

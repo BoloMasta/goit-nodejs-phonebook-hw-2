@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const contactsFunctions = require("../../models/contacts");
+const contactsController = require("../../controller/contactController");
 const {
   validateCreateContact,
   validateUpdateContact,
-} = require("../../models/validator");
+} = require("../../controller/validator");
 
 const checkContactId = (contact, contactId, res) => {
   if (!contact) {
@@ -17,7 +17,7 @@ const checkContactId = (contact, contactId, res) => {
 
 router.get("/", async (req, res, next) => {
   try {
-    const contacts = await contactsFunctions.listContacts();
+    const contacts = await contactsController.listContacts();
     res.json(contacts);
   } catch (error) {
     next(error);
@@ -28,7 +28,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:contactId", async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await contactsFunctions.getContactById(contactId);
+    const contact = await contactsController.getContactById(contactId);
     checkContactId(contact, contactId, res);
     res.json(contact);
   } catch (error) {
@@ -39,11 +39,11 @@ router.get("/:contactId", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { error, value } = validateCreateContact(req.body);
+    const { error } = validateCreateContact(req.body);
     if (error) {
       return res.status(400).json({ message: error.message });
     }
-    const newContact = await contactsFunctions.addContact(req.body);
+    const newContact = await contactsController.addContact(req.body);
 
     res.status(201).json(newContact);
   } catch (error) {
@@ -55,7 +55,7 @@ router.post("/", async (req, res, next) => {
 router.delete("/:contactId", async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await contactsFunctions.removeContact(contactId);
+    const contact = await contactsController.removeContact(contactId);
 
     checkContactId(contact, contactId, res);
 
@@ -75,7 +75,7 @@ router.put("/:contactId", async (req, res, next) => {
     if (error) {
       return res.status(400).json({ message: error.message });
     }
-    const contact = await contactsFunctions.updateContact(contactId, req.body);
+    const contact = await contactsController.updateContact(contactId, req.body);
 
     checkContactId(contact, contactId, res);
 
