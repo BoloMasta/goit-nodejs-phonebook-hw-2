@@ -2,23 +2,18 @@ const express = require("express");
 const router = express.Router();
 
 const contactsController = require("../../controller/contactController");
-const {
-  validateCreateContact,
-  validateUpdateContact,
-} = require("../../controller/validator");
+const { validateCreateContact, validateUpdateContact } = require("../../model/contact");
 
-const checkContactId = (contact, contactId, res) => {
-  if (!contact) {
-    return res
-      .status(404)
-      .json({ message: `Contact with id=${contactId} was not found.` });
-  }
-};
+// const checkContactId = (contact, contactId, res) => {
+//   if (!contact) {
+//     return res.status(404).json({ message: `Contact with id=${contactId} was not found.` });
+//   }
+// };
 
 router.get("/", async (req, res, next) => {
   try {
     const contacts = await contactsController.listContacts();
-    res.json(contacts);
+    res.status(200).json(contacts);
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });
@@ -28,9 +23,19 @@ router.get("/", async (req, res, next) => {
 router.get("/:contactId", async (req, res, next) => {
   try {
     const { contactId } = req.params;
+
+    if (contactId.length !== 24) {
+      return res.status(400).json({ message: "Invalid id" });
+    }
+
     const contact = await contactsController.getContactById(contactId);
-    checkContactId(contact, contactId, res);
-    res.json(contact);
+    //checkContactId(contact, contactId, res);
+
+    if (!contact) {
+      return res.status(404).json({ message: `Contact with id=${contactId} was not found.` });
+    }
+
+    res.status(200).json(contact);
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });
@@ -45,7 +50,7 @@ router.post("/", async (req, res, next) => {
     }
     const newContact = await contactsController.addContact(req.body);
 
-    res.status(201).json(newContact);
+    res.status(200).json(newContact);
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });
@@ -55,13 +60,18 @@ router.post("/", async (req, res, next) => {
 router.delete("/:contactId", async (req, res, next) => {
   try {
     const { contactId } = req.params;
+
+    if (contactId.length !== 24) {
+      return res.status(400).json({ message: "Invalid id" });
+    }
+
     const contact = await contactsController.removeContact(contactId);
 
-    checkContactId(contact, contactId, res);
+    if (!contact) {
+      return res.status(404).json({ message: `Contact with id=${contactId} was not found.` });
+    }
 
-    res
-      .status(200)
-      .json({ message: `Contact with id=${contactId} was deleted.` });
+    res.status(200).json({ message: `Contact with id=${contactId} was deleted.` });
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });
@@ -71,13 +81,41 @@ router.delete("/:contactId", async (req, res, next) => {
 router.put("/:contactId", async (req, res, next) => {
   try {
     const { contactId } = req.params;
+
+    if (contactId.length !== 24) {
+      return res.status(400).json({ message: "Invalid id" });
+    }
+
     const { error, value } = validateUpdateContact(req.body);
     if (error) {
       return res.status(400).json({ message: error.message });
     }
     const contact = await contactsController.updateContact(contactId, req.body);
 
-    checkContactId(contact, contactId, res);
+    // checkContactId(contact, contactId, res);
+
+    res.status(200).json(contact);
+  } catch (error) {
+    next(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.patch("/:contactId/favorite", async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+
+    if (contactId.length !== 24) {
+      return res.status(400).json({ message: "Invalid id" });
+    }
+
+    if (!req.body.hasOwnProperty("favorite")) {
+      return res.status(400).json({ message: "missing field favorite" });
+    }
+
+    const contact = await contactsController.updateContactStatus(contactId, req.body);
+
+    // checkContactId(contact, contactId, res);
 
     res.status(200).json(contact);
   } catch (error) {
