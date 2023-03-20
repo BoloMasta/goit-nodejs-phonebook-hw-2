@@ -6,7 +6,7 @@ const listContacts = async () => {
 };
 
 const getContactById = async (_id) => {
-  const contact = await Contact.find({ _id });
+  const contact = await Contact.findOne({ _id });
   return contact;
 };
 
