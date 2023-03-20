@@ -1,13 +1,11 @@
 const { Contact } = require("../models/contact");
 
 const listContacts = async () => {
-  const contacts = await Contact.find();
-  return contacts;
+  return await Contact.find();
 };
 
 const getContactById = async (_id) => {
-  const contact = await Contact.findOne({ _id });
-  return contact;
+  return await Contact.findOne({ _id });
 };
 
 const removeContact = async (_id) => {
@@ -22,14 +20,12 @@ const addContact = async (body) => {
 
 const updateContact = async (_id, body) => {
   await Contact.findByIdAndUpdate(_id, body);
-  const updatedContact = await getContactById(_id);
-  return updatedContact;
+  return await getContactById(_id);
 };
 
 const updateContactStatus = async (_id, body) => {
   await Contact.findByIdAndUpdate(_id, body);
-  const updatedContact = await getContactById(_id);
-  return updatedContact;
+  return await getContactById(_id);
 };
 
 module.exports = {
