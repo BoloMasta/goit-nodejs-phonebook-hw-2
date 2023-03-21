@@ -16,7 +16,7 @@ const idValidation = async (req, res, next) => {
     return res.status(400).json({ message: "Invalid id" });
   }
   const contact = await contactsController.getContactById(contactId);
-  if (contact.length === 0) {
+  if (!contact) {
     return res.status(404).json({ message: `Contact with id=${contactId} was not found.` });
   }
   next();
