@@ -18,10 +18,10 @@ const contactSchema = new Shema({
     type: Boolean,
     default: false,
   },
-  owner: {
-    type: mongoose.SchemaTypes.ObjectId,
-    ref: "user",
-  },
+  // owner: {
+  //   type: mongoose.SchemaTypes.ObjectId,
+  //   ref: "user",
+  // },
 });
 
 const Contact = mongoose.model("Contact", contactSchema);
