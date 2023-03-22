@@ -1,32 +1,52 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 const Joi = require("joi");
 const JoiPhoneValidate = Joi.extend(require("joi-phone-number"));
 
 const Shema = mongoose.Schema;
 
-const contactSchema = new Shema({
-  name: {
-    type: String,
+const contactSchema = new Shema(
+  {
+    name: {
+      type: String,
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+    owner: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: "user",
+    },
   },
-  email: {
-    type: String,
+  {
+    versionKey: false,
+    timestamps: true,
+  }
+);
+
+const options = {
+  page: 1,
+  limit: 10,
+  collation: {
+    locale: "en",
   },
-  phone: {
-    type: String,
-  },
-  favorite: {
-    type: Boolean,
-    default: false,
-  },
-  // owner: {
-  //   type: mongoose.SchemaTypes.ObjectId,
-  //   ref: "user",
-  // },
-});
+};
+
+contactSchema.plugin(mongoosePaginate);
 
 const Contact = mongoose.model("Contact", contactSchema);
 
-const validator = (schema) => (payload) => schema.validate(payload, { abortEarly: false });
+Contact.paginate({}, options);
+
+const validator = (schema) => (payload) =>
+  schema.validate(payload, { abortEarly: false });
 
 const contactCreateValidationShema = Joi.object({
   name: Joi.string().min(3).max(30).required(),
@@ -59,7 +79,9 @@ const idShema = Joi.object({
 
 const validateCreateContact = validator(contactCreateValidationShema);
 const validateUpdateContact = validator(contactUpdateValidationShema);
-const validateUpdateStatusContact = validator(contactUpdateStatusValidationShema);
+const validateUpdateStatusContact = validator(
+  contactUpdateStatusValidationShema
+);
 const validateIdContact = validator(idShema);
 
 module.exports = {

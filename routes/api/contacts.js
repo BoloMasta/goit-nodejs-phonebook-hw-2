@@ -26,18 +26,17 @@ const idValidation = async (req, res, next) => {
 };
 
 router.get("/", auth, async (req, res, next) => {
+  const { favorite } = req.query;
+
+  if (favorite === "true" || favorite === "false") {
+    const contacts = await contactsController.showOnlyFavoriteContacts(
+      favorite
+    );
+    return res.status(200).json(contacts);
+  }
+
   try {
     const contacts = await contactsController.listContacts();
-    res.status(200).json(contacts);
-  } catch (error) {
-    next(error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
-router.get("/favorite=true", auth, async (req, res, next) => {
-  try {
-    const contacts = await contactsController.showOnlyFavoriteContacts();
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
