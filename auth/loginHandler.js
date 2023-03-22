@@ -13,7 +13,7 @@ const loginHandler = async (email, password) => {
   if (result) {
     return issueToken(user);
   } else {
-    return false;
+    throw new Error("Invalid password");
   }
 };
 

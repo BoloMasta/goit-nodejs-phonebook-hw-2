@@ -8,6 +8,7 @@ const {
   validateUpdateStatusContact,
   validateIdContact,
 } = require("../../models/contact");
+const auth = require("../../auth/auth");
 
 const idValidation = async (req, res, next) => {
   const { contactId } = req.params;
@@ -22,7 +23,7 @@ const idValidation = async (req, res, next) => {
   next();
 };
 
-router.get("/", async (req, res, next) => {
+router.get("/", auth, async (req, res, next) => {
   try {
     const contacts = await contactsController.listContacts();
     res.status(200).json(contacts);
