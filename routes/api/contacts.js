@@ -35,6 +35,16 @@ router.get("/", auth, async (req, res, next) => {
   }
 });
 
+router.get("/favorite=true", auth, async (req, res, next) => {
+  try {
+    const contacts = await contactsController.showOnlyFavoriteContacts();
+    res.status(200).json(contacts);
+  } catch (error) {
+    next(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.get("/:contactId", auth, idValidation, async (req, res, next) => {
   try {
     const { contactId } = req.params;
