@@ -32,7 +32,8 @@ const hashPassword = (password) => {
 
 const User = mongoose.model("User", userSchema);
 
-const validator = (schema) => (payload) => schema.validate(payload, { abortEarly: false });
+const validator = (schema) => (payload) =>
+  schema.validate(payload, { abortEarly: false });
 
 const userCreateValidationShema = Joi.object({
   email: Joi.string().email().required(),
@@ -40,10 +41,18 @@ const userCreateValidationShema = Joi.object({
   subscription: Joi.string().valid("starter", "pro", "business"),
 });
 
+const userSubscriptionUpdateValidationShema = Joi.object({
+  subscription: Joi.string().valid("starter", "pro", "business").required(),
+});
+
 const validateCreateUser = validator(userCreateValidationShema);
+const validateUpdateSubscription = validator(
+  userSubscriptionUpdateValidationShema
+);
 
 module.exports = {
   User,
   hashPassword,
   validateCreateUser,
+  validateUpdateSubscription,
 };

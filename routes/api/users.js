@@ -2,7 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const userController = require("../../controllers/userController");
-const { validateCreateUser } = require("../../models/user");
+const {
+  validateCreateUser,
+  validateUpdateSubscription,
+} = require("../../models/user");
 const loginHandler = require("../../auth/loginHandler");
 const auth = require("../../auth/auth");
 
@@ -48,6 +51,10 @@ router.get("/current", auth, async (req, res, next) => {
 
 router.patch("/", auth, async (req, res, next) => {
   try {
+    const { error } = validateUpdateSubscription(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.message });
+    }
     const { email } = req.user;
     const user = await userController.updateSubscription(email, req.body);
     res.status(200).json(user);
