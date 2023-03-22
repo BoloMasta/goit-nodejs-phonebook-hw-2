@@ -1,9 +1,14 @@
-const { User } = require("../models/user");
+const { User, hashPassword } = require("../models/user");
 
 const createUser = async (body) => {
-  const user = new User(body);
-  await user.save();
-  return user;
+  try {
+    const { email, password } = body;
+    const passwordHash = hashPassword(password);
+    const newUser = await User.create({ email, password: passwordHash });
+    return newUser;
+  } catch (error) {
+    throw error;
+  }
 };
 
 module.exports = {

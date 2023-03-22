@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+const bcrypt = require("bcrypt");
 
 const Schema = mongoose.Schema;
 
@@ -24,6 +25,11 @@ const userSchema = new Schema({
   },
 });
 
+const hashPassword = (password) => {
+  const salt = bcrypt.genSaltSync(10);
+  return bcrypt.hashSync(password, salt);
+};
+
 const User = mongoose.model("User", userSchema);
 
 const validator = (schema) => (payload) => schema.validate(payload, { abortEarly: false });
@@ -38,5 +44,6 @@ const validateCreateUser = validator(userCreateValidationShema);
 
 module.exports = {
   User,
+  hashPassword,
   validateCreateUser,
 };
