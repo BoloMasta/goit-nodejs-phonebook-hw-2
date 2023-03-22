@@ -14,7 +14,7 @@ const auth = (req, res, next) => {
     req.user = jwt.decode(token);
     next();
   } catch (error) {
-    res.status(401).json({ message: "Token is not valid" });
+    res.status(401).json({ message: "Not authorized" });
   }
 };
 

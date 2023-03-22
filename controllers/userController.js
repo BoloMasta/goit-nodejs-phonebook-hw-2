@@ -11,7 +11,17 @@ const getUserByEmail = async (email) => {
   return await User.findOne({ email });
 };
 
+const logout = async (token) => {
+  const user = await User.findOneAndUpdate(
+    { token },
+    { token: null },
+    { new: true }
+  );
+  return user;
+};
+
 module.exports = {
   createUser,
   getUserByEmail,
+  logout,
 };

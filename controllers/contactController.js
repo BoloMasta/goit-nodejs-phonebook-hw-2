@@ -28,6 +28,10 @@ const updateContactStatus = async (_id, body) => {
   return await getContactById(_id);
 };
 
+const showOnlyFavoriteContacts = async () => {
+  return await Contact.find({ favorite: true });
+};
+
 module.exports = {
   listContacts,
   getContactById,
@@ -35,4 +39,5 @@ module.exports = {
   addContact,
   updateContact,
   updateContactStatus,
+  showOnlyFavoriteContacts,
 };

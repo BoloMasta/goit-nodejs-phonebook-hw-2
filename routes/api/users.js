@@ -4,6 +4,7 @@ const router = express.Router();
 const userController = require("../../controllers/userController");
 const { validateCreateUser } = require("../../models/user");
 const loginHandler = require("../../auth/loginHandler");
+const auth = require("../../auth/auth");
 
 router.post("/signup", async (req, res, next) => {
   try {
@@ -31,6 +32,28 @@ router.post("/login", async (req, res, next) => {
   } catch (error) {
     next(error);
     return res.status(401).json({ message: "Invalid login data" });
+  }
+});
+
+router.get("/current", auth, async (req, res, next) => {
+  try {
+    const { email } = req.user;
+    const user = await userController.getUserByEmail(email);
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/logout", auth, async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    const user = await userController.logout(token);
+    res.status(204).json(user);
+  } catch (error) {
+    next(error);
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
