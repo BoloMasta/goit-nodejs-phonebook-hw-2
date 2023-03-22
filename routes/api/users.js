@@ -26,15 +26,11 @@ router.post("/login", async (req, res, next) => {
   }
 
   try {
-    const isValidPassword = await loginHandler(email, password);
-    if (isValidPassword) {
-      return res.status(200).json({ message: "Login success" });
-    } else {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
+    const token = await loginHandler(email, password);
+    res.status(200).json({ token });
   } catch (error) {
     next(error);
-    return res.status(404).json({ message: "Invalid login data" });
+    return res.status(401).json({ message: "Invalid login data" });
   }
 });
 
