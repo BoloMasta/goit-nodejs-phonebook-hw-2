@@ -11,6 +11,16 @@ const getUserByEmail = async (email) => {
   return await User.findOne({ email });
 };
 
+const updateSubscription = async (email, body) => {
+  const { subscription } = body;
+  const user = await User.findOneAndUpdate(
+    { email },
+    { subscription },
+    { new: true }
+  );
+  return user;
+};
+
 const logout = async (token) => {
   const user = await User.findOneAndUpdate(
     { token },
@@ -23,5 +33,6 @@ const logout = async (token) => {
 module.exports = {
   createUser,
   getUserByEmail,
+  updateSubscription,
   logout,
 };
