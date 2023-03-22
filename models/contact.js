@@ -1,6 +1,6 @@
+const mongoose = require("mongoose");
 const Joi = require("joi");
 const JoiPhoneValidate = Joi.extend(require("joi-phone-number"));
-const mongoose = require("mongoose");
 
 const Shema = mongoose.Schema;
 
@@ -17,6 +17,10 @@ const contactSchema = new Shema({
   favorite: {
     type: Boolean,
     default: false,
+  },
+  owner: {
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: "user",
   },
 });
 
