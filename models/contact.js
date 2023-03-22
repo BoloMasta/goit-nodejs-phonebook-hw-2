@@ -31,19 +31,9 @@ const contactSchema = new Shema(
   }
 );
 
-const options = {
-  page: 1,
-  limit: 10,
-  collation: {
-    locale: "en",
-  },
-};
-
 contactSchema.plugin(mongoosePaginate);
 
 const Contact = mongoose.model("Contact", contactSchema);
-
-Contact.paginate({}, options);
 
 const validator = (schema) => (payload) =>
   schema.validate(payload, { abortEarly: false });

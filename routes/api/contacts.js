@@ -26,17 +26,18 @@ const idValidation = async (req, res, next) => {
 };
 
 router.get("/", auth, async (req, res, next) => {
-  const { favorite } = req.query;
-
-  if (favorite === "true" || favorite === "false") {
-    const contacts = await contactsController.showOnlyFavoriteContacts(
-      favorite
-    );
-    return res.status(200).json(contacts);
-  }
+  const { page, limit, favorite } = req.query;
+  const options = {
+    page: page || 1,
+    limit: limit || 10,
+    collation: {
+      locale: "en",
+    },
+    favorite: favorite || null,
+  };
 
   try {
-    const contacts = await contactsController.listContacts();
+    const contacts = await contactsController.listContacts(options);
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
