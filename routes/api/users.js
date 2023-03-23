@@ -15,6 +15,13 @@ router.post("/signup", async (req, res, next) => {
     if (error) {
       return res.status(400).json({ message: error.message });
     }
+
+    const { email } = req.body;
+    const user = await userController.getUserByEmail(email);
+    if (user) {
+      return res.status(409).json({ message: "Email in use" });
+    }
+
     const newUser = await userController.createUser(req.body);
     res.status(201).json(newUser);
   } catch (error) {

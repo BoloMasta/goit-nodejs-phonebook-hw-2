@@ -7,7 +7,7 @@ const issueToken = (user) => {
     id: user._id,
     email: user.email,
   };
-  const token = jwt.sign(payload, jwtSecretKey, { expiresIn: "1h" });
+  const token = jwt.sign(payload, jwtSecretKey, { expiresIn: "24h" });
   return token;
 };
 
