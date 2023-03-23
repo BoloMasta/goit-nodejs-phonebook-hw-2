@@ -4,26 +4,29 @@ const bcrypt = require("bcrypt");
 
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema({
-  email: {
-    type: String,
-    required: [true, "Email is required"],
-    unique: true,
+const userSchema = new Schema(
+  {
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+    },
+    subscription: {
+      type: String,
+      enum: ["starter", "pro", "business"],
+      default: "starter",
+    },
+    token: {
+      type: String,
+      default: null,
+    },
   },
-  password: {
-    type: String,
-    required: [true, "Password is required"],
-  },
-  subscription: {
-    type: String,
-    enum: ["starter", "pro", "business"],
-    default: "starter",
-  },
-  token: {
-    type: String,
-    default: null,
-  },
-});
+  { versionKey: false, timestamps: true }
+);
 
 const hashPassword = (password) => {
   const salt = bcrypt.genSaltSync(10);

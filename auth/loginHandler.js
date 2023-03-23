@@ -6,14 +6,14 @@ const issueToken = require("./issueToken");
 const loginHandler = async (email, password) => {
   const user = await getUserByEmail(email);
   if (!user) {
-    throw new Error("User not found");
+    throw new Error("Invalid login data");
   }
 
   const result = bcrypt.compareSync(password, user.password);
   if (result) {
     return issueToken(user);
   } else {
-    throw new Error("Invalid password");
+    throw new Error("Invalid login data");
   }
 };
 
