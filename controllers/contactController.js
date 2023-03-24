@@ -1,7 +1,14 @@
 const { Contact } = require("../models/contact");
 
-const listContacts = async () => {
-  return await Contact.find();
+const listContacts = async (options) => {
+  const { favorite } = options;
+  if (favorite) {
+    const contacts = await Contact.paginate({ favorite }, options);
+    return contacts;
+  } else {
+    const contacts = await Contact.paginate({}, options);
+    return contacts;
+  }
 };
 
 const getContactById = async (_id) => {
@@ -28,6 +35,10 @@ const updateContactStatus = async (_id, body) => {
   return await getContactById(_id);
 };
 
+const showOnlyFavoriteContacts = async (favorite) => {
+  return await Contact.find({ favorite });
+};
+
 module.exports = {
   listContacts,
   getContactById,
@@ -35,4 +46,5 @@ module.exports = {
   addContact,
   updateContact,
   updateContactStatus,
+  showOnlyFavoriteContacts,
 };

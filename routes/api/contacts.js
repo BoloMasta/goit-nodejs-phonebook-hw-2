@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const contactsController = require("../../controller/contactController");
+const contactsController = require("../../controllers/contactController");
 const {
   validateCreateContact,
   validateUpdateContact,
   validateUpdateStatusContact,
   validateIdContact,
 } = require("../../models/contact");
+const auth = require("../../auth/auth");
 
 const idValidation = async (req, res, next) => {
   const { contactId } = req.params;
@@ -17,14 +18,26 @@ const idValidation = async (req, res, next) => {
   }
   const contact = await contactsController.getContactById(contactId);
   if (!contact) {
-    return res.status(404).json({ message: `Contact with id=${contactId} was not found.` });
+    return res
+      .status(404)
+      .json({ message: `Contact with id=${contactId} was not found.` });
   }
   next();
 };
 
-router.get("/", async (req, res, next) => {
+router.get("/", auth, async (req, res, next) => {
+  const { page, limit, favorite } = req.query;
+  const options = {
+    page: page || 1,
+    limit: limit || 10,
+    collation: {
+      locale: "en",
+    },
+    favorite: favorite || null,
+  };
+
   try {
-    const contacts = await contactsController.listContacts();
+    const contacts = await contactsController.listContacts(options);
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
@@ -32,7 +45,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/:contactId", idValidation, async (req, res, next) => {
+router.get("/:contactId", auth, idValidation, async (req, res, next) => {
   try {
     const { contactId } = req.params;
     const contact = await contactsController.getContactById(contactId);
@@ -43,7 +56,7 @@ router.get("/:contactId", idValidation, async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", auth, async (req, res, next) => {
   try {
     const { error } = validateCreateContact(req.body);
     if (error) {
@@ -57,18 +70,20 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.delete("/:contactId", idValidation, async (req, res, next) => {
+router.delete("/:contactId", auth, idValidation, async (req, res, next) => {
   try {
     const { contactId } = req.params;
     await contactsController.removeContact(contactId);
-    res.status(200).json({ message: `Contact with id=${contactId} was deleted.` });
+    res
+      .status(200)
+      .json({ message: `Contact with id=${contactId} was deleted.` });
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });
   }
 });
 
-router.put("/:contactId", idValidation, async (req, res, next) => {
+router.put("/:contactId", auth, idValidation, async (req, res, next) => {
   try {
     const { contactId } = req.params;
     const { error } = validateUpdateContact(req.body);
@@ -83,19 +98,27 @@ router.put("/:contactId", idValidation, async (req, res, next) => {
   }
 });
 
-router.patch("/:contactId/favorite", idValidation, async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const { error } = validateUpdateStatusContact(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.message });
+router.patch(
+  "/:contactId/favorite",
+  auth,
+  idValidation,
+  async (req, res, next) => {
+    try {
+      const { contactId } = req.params;
+      const { error } = validateUpdateStatusContact(req.body);
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+      const contact = await contactsController.updateContactStatus(
+        contactId,
+        req.body
+      );
+      res.status(200).json(contact);
+    } catch (error) {
+      next(error);
+      return res.status(500).json({ message: "Server error" });
     }
-    const contact = await contactsController.updateContactStatus(contactId, req.body);
-    res.status(200).json(contact);
-  } catch (error) {
-    next(error);
-    return res.status(500).json({ message: "Server error" });
   }
-});
+);
 
 module.exports = router;
