@@ -19,8 +19,7 @@ const updateSubscription = async (email, body) => {
   return user;
 };
 
-const updateAvatar = async (email, body) => {
-  const { avatarURL } = body;
+const updateAvatar = async (email, avatarURL) => {
   const user = await User.findOneAndUpdate({ email }, { avatarURL }, { new: true });
   return user;
 };
