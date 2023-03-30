@@ -19,6 +19,12 @@ const updateSubscription = async (email, body) => {
   return user;
 };
 
+const updateAvatar = async (email, body) => {
+  const { avatarURL } = body;
+  const user = await User.findOneAndUpdate({ email }, { avatarURL }, { new: true });
+  return user;
+};
+
 const logout = async (token) => {
   const user = await User.findOneAndUpdate({ token }, { token: null }, { new: true });
   return user;
@@ -28,5 +34,6 @@ module.exports = {
   createUser,
   getUserByEmail,
   updateSubscription,
+  updateAvatar,
   logout,
 };
