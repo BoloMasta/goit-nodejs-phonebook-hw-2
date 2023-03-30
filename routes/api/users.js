@@ -1,10 +1,29 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs/promises");
+const jimp = require("jimp");
 
 const userController = require("../../controllers/userController");
 const { validateCreateUser, validateUpdateSubscription } = require("../../models/user");
 const loginHandler = require("../../auth/loginHandler");
 const auth = require("../../auth/auth");
+const Jimp = require("jimp");
+
+const storeAvatar = path.join(process.cwd(), "temp");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, storeAvatar);
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+  limits: 1048576,
+});
+
+const upload = multer({ storage });
 
 router.post("/signup", async (req, res, next) => {
   try {
@@ -68,16 +87,48 @@ router.patch("/", auth, async (req, res, next) => {
   }
 });
 
-router.patch("/avatars", auth, async (req, res, next) => {
+router.patch("/avatars", auth, upload.single("avatar"), async (req, res, next) => {
   try {
     const { email } = req.user;
-    const user = await userController.updateAvatar(email, req.body);
+    const { path: tempName, originalname } = req.file;
+    const fileName = path.join(storeAvatar, originalname);
+    await fs.rename(tempName, fileName);
+
+    const img = await Jimp.read(fileName);
+    // await img.autocrop().cover(250, 250).quality(60).writeAsync(fileName);
+
+    // await fs.rename(fileName, path.join(process.cwd(), "public/avatars", originalname));
+
+    const user = await userController.updateAvatar(email, fileName);
     res.status(200).json(user);
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });
   }
 });
+
+//   try {
+//     const { path: tempName, originalname } = req.file;
+//     const fileName = path.join(storeAvatar, originalname);
+//     await fs.rename(tempName, fileName);
+//     const { email } = req.user;
+//     const user = await userController.updateAvatar(email, fileName);
+//     res.status(200).json(user);
+//   } catch (error) {
+//     next(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// });
+
+//   try {
+//     const { email } = req.user;
+//     const user = await userController.updateAvatar(email, req.body);
+//     res.status(200).json(user);
+//   } catch (error) {
+//     next(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// });
 
 router.get("/logout", auth, async (req, res, next) => {
   try {
