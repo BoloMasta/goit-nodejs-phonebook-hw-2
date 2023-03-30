@@ -2,10 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const userController = require("../../controllers/userController");
-const {
-  validateCreateUser,
-  validateUpdateSubscription,
-} = require("../../models/user");
+const { validateCreateUser, validateUpdateSubscription } = require("../../models/user");
 const loginHandler = require("../../auth/loginHandler");
 const auth = require("../../auth/auth");
 
