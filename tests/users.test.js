@@ -3,7 +3,7 @@ const app = require("../app");
 const { User } = require("../models/user");
 
 const newUser = {
-  email: "testjest@test.pl",
+  email: "testjestexamplemail@testjest.pl",
   password: "password",
 };
 
@@ -11,7 +11,7 @@ describe("Test the users routes", () => {
   let loginToken = "";
 
   beforeAll(async () => {
-    await User.deleteMany({});
+    await User.findOneAndRemove({ email: newUser.email });
   });
 
   test("Test POST for users/signup without user data", async () => {
@@ -90,7 +90,7 @@ describe("Test the users routes", () => {
   });
 
   afterAll(async () => {
-    await User.deleteMany({});
+    await User.findOneAndRemove({ email: newUser.email });
     loginToken = "";
   });
 });
