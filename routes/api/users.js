@@ -4,9 +4,13 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
+const sgMail = require("@sendgrid/mail");
 
 const userController = require("../../controllers/userController");
-const { validateCreateUser, validateUpdateSubscription } = require("../../models/user");
+const {
+  validateCreateUser,
+  validateUpdateSubscription,
+} = require("../../models/user");
 const loginHandler = require("../../auth/loginHandler");
 const auth = require("../../auth/auth");
 
@@ -24,6 +28,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 router.post("/signup", async (req, res, next) => {
   try {
     const { error } = validateCreateUser(req.body);
@@ -38,6 +44,24 @@ router.post("/signup", async (req, res, next) => {
     }
 
     const newUser = await userController.createUser(req.body);
+
+    const msg = {
+      to: email,
+      from: "boleslawadamiec@gmail.com",
+      subject: "Verify your email",
+      text: "Click the link to verify your email",
+      html: "<a href='http://localhost:3000/api/users/verify/${newUser.verifyToken}'>Click to verify</a>",
+    };
+
+    await sgMail
+      .send(msg)
+      .then(() => {
+        console.log("Email sent");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
     res.status(201).json(newUser);
   } catch (error) {
     next(error);
@@ -86,23 +110,51 @@ router.patch("/", auth, async (req, res, next) => {
   }
 });
 
-router.patch("/avatars", auth, upload.single("avatar"), async (req, res, next) => {
+router.patch(
+  "/avatars",
+  auth,
+  upload.single("avatar"),
+  async (req, res, next) => {
+    try {
+      const { email } = req.user;
+      const { path: tempName, originalname } = req.file;
+      const fileName = path.join(storeAvatar, originalname);
+      await fs.rename(tempName, fileName);
+
+      const img = await Jimp.read(fileName);
+      await img.autocrop().cover(250, 250).quality(60).writeAsync(fileName);
+
+      await fs.rename(
+        fileName,
+        path.join(process.cwd(), "public/avatars", originalname)
+      );
+
+      const avatarURL = path.join(
+        process.cwd(),
+        "public/avatars",
+        originalname
+      );
+      const cleanAvatarURL = avatarURL.replace(/\\/g, "/");
+
+      const user = await userController.updateAvatar(email, cleanAvatarURL);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+router.get("/verify/:verificationToken", async (req, res, next) => {
   try {
-    const { email } = req.user;
-    const { path: tempName, originalname } = req.file;
-    const fileName = path.join(storeAvatar, originalname);
-    await fs.rename(tempName, fileName);
+    const { verificationToken } = req.params;
+    const user = await userController.verifyUser(verificationToken);
 
-    const img = await Jimp.read(fileName);
-    await img.autocrop().cover(250, 250).quality(60).writeAsync(fileName);
-
-    await fs.rename(fileName, path.join(process.cwd(), "public/avatars", originalname));
-
-    const avatarURL = path.join(process.cwd(), "public/avatars", originalname);
-    const cleanAvatarURL = avatarURL.replace(/\\/g, "/");
-
-    const user = await userController.updateAvatar(email, cleanAvatarURL);
-    res.status(200).json(user);
+    if (user) {
+      return res.status(200).json({ message: "Verification successful" });
+    } else {
+      return res.status(404).json({ message: "User not found" });
+    }
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });

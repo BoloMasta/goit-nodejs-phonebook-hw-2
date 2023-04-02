@@ -28,6 +28,15 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verifyToken: {
+      type: String,
+      required: [true, "Verify token is required"],
+      unique: true,
+    },
   },
   { versionKey: false, timestamps: true }
 );
@@ -39,7 +48,8 @@ const hashPassword = (password) => {
 
 const User = mongoose.model("User", userSchema);
 
-const validator = (schema) => (payload) => schema.validate(payload, { abortEarly: false });
+const validator = (schema) => (payload) =>
+  schema.validate(payload, { abortEarly: false });
 
 const userCreateValidationShema = Joi.object({
   email: Joi.string().email().required(),
@@ -52,7 +62,9 @@ const userSubscriptionUpdateValidationShema = Joi.object({
 });
 
 const validateCreateUser = validator(userCreateValidationShema);
-const validateUpdateSubscription = validator(userSubscriptionUpdateValidationShema);
+const validateUpdateSubscription = validator(
+  userSubscriptionUpdateValidationShema
+);
 
 module.exports = {
   User,
