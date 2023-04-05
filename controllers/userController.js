@@ -22,37 +22,26 @@ const getUserByEmail = async (email) => {
 
 const updateSubscription = async (email, body) => {
   const { subscription } = body;
-  const user = await User.findOneAndUpdate(
-    { email },
-    { subscription },
-    { new: true }
-  );
+  const user = await User.findOneAndUpdate({ email }, { subscription }, { new: true });
   return user;
 };
 
 const updateAvatar = async (email, avatarURL) => {
+  const user = await User.findOneAndUpdate({ email }, { avatarURL }, { new: true });
+  return user;
+};
+
+const verifyUser = async (verifyToken) => {
   const user = await User.findOneAndUpdate(
-    { email },
-    { avatarURL },
+    { verifyToken },
+    { verify: true, verifyToken: null },
     { new: true }
   );
   return user;
 };
 
-const verifyUser = async (verifyToken) => {
-  return await User.findOneAndUpdate(
-    { verifyToken },
-    { verify: true, verifyToken: null },
-    { new: true }
-  );
-};
-
 const logout = async (token) => {
-  const user = await User.findOneAndUpdate(
-    { token },
-    { token: null },
-    { new: true }
-  );
+  const user = await User.findOneAndUpdate({ token }, { token: null }, { new: true });
   return user;
 };
 

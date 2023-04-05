@@ -4,7 +4,9 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
-const sgMail = require("@sendgrid/mail");
+const nodemailer = require("nodemailer");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const userController = require("../../controllers/userController");
 const { validateCreateUser, validateUpdateSubscription } = require("../../models/user");
@@ -25,8 +27,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 router.post("/signup", async (req, res, next) => {
   try {
     const { error } = validateCreateUser(req.body);
@@ -42,22 +42,32 @@ router.post("/signup", async (req, res, next) => {
 
     const newUser = await userController.createUser(req.body);
 
-    const msg = {
-      to: email,
-      from: "boleslawadamiec@gmail.com",
-      subject: "Verify your email",
-      text: "Click the link to verify your email",
-      html: `<a href='http://localhost:3000/api/users/verify/${newUser.verifyToken}'>Click to verify</a>`,
+    const transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.USER_MAIL,
+        pass: process.env.USER_PASS,
+      },
+    });
+
+    const html = `
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 300px; background-color: #777777; font-family: sans-serif; font-size: 1.5rem; border: 1px solid #777777; border-radius: 10px;">
+    <h1>Verification</h1>
+    <p>Click on the link below to verify your account</p>
+    <a href='http://localhost:3000/api/users/verify/${newUser.verifyToken}' target='_blank'>VERIFY</a>
+    </div>`;
+
+    const emailOptions = {
+      from: '"BoloMasta 🖥️" <test@test.pl>',
+      to: ["larry80@ethereal.email", `${email}`],
+      subject: "Verification ✔",
+      text: "Mail with verification link",
+      html,
     };
 
-    await sgMail
-      .send(msg)
-      .then(() => {
-        console.log("Email sent");
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    await transporter.sendMail(emailOptions);
 
     res.status(201).json(newUser);
   } catch (error) {
