@@ -10,6 +10,7 @@ const newUser = {
 
 describe("Test the users routes", () => {
   let loginToken = "";
+  let verifyTestToken = "";
 
   beforeAll(async () => {
     await User.findOneAndRemove({ email: newUser.email });
@@ -25,9 +26,12 @@ describe("Test the users routes", () => {
     const response = await request(app).post("/api/users/signup").send(newUser);
     expect(response.statusCode).toBe(201);
 
-    const { email, subscription } = response.body;
+    const { email, subscription, verifyToken } = response.body;
+
     expect(email).toBe(newUser.email);
     expect(subscription).toBe("starter");
+
+    verifyTestToken = verifyToken;
   });
 
   test("Test POST for users/signup with existing user data", async () => {
@@ -88,6 +92,18 @@ describe("Test the users routes", () => {
     });
     expect(response.statusCode).toBe(401);
     expect(response.body.message).toBe("No token, authorization denied");
+  });
+
+  test("Test GET for users/verify/:verificationToken with wrong token", async () => {
+    const response = await request(app).get("/api/users/verify/wrongtoken");
+    expect(response.statusCode).toBe(404);
+    expect(response.body.message).toBe("User not found");
+  });
+
+  test("Test GET for users/verify/:verificationToken", async () => {
+    const response = await request(app).get(`/api/users/verify/${verifyTestToken}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.message).toBe("Verification successful");
   });
 
   afterAll(async () => {
