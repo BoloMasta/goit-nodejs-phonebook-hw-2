@@ -7,10 +7,7 @@ const Jimp = require("jimp");
 const sgMail = require("@sendgrid/mail");
 
 const userController = require("../../controllers/userController");
-const {
-  validateCreateUser,
-  validateUpdateSubscription,
-} = require("../../models/user");
+const { validateCreateUser, validateUpdateSubscription } = require("../../models/user");
 const loginHandler = require("../../auth/loginHandler");
 const auth = require("../../auth/auth");
 
@@ -50,7 +47,7 @@ router.post("/signup", async (req, res, next) => {
       from: "boleslawadamiec@gmail.com",
       subject: "Verify your email",
       text: "Click the link to verify your email",
-      html: "<a href='http://localhost:3000/api/users/verify/${newUser.verifyToken}'>Click to verify</a>",
+      html: `<a href='http://localhost:3000/api/users/verify/${newUser.verifyToken}'>Click to verify</a>`,
     };
 
     await sgMail
@@ -110,40 +107,28 @@ router.patch("/", auth, async (req, res, next) => {
   }
 });
 
-router.patch(
-  "/avatars",
-  auth,
-  upload.single("avatar"),
-  async (req, res, next) => {
-    try {
-      const { email } = req.user;
-      const { path: tempName, originalname } = req.file;
-      const fileName = path.join(storeAvatar, originalname);
-      await fs.rename(tempName, fileName);
+router.patch("/avatars", auth, upload.single("avatar"), async (req, res, next) => {
+  try {
+    const { email } = req.user;
+    const { path: tempName, originalname } = req.file;
+    const fileName = path.join(storeAvatar, originalname);
+    await fs.rename(tempName, fileName);
 
-      const img = await Jimp.read(fileName);
-      await img.autocrop().cover(250, 250).quality(60).writeAsync(fileName);
+    const img = await Jimp.read(fileName);
+    await img.autocrop().cover(250, 250).quality(60).writeAsync(fileName);
 
-      await fs.rename(
-        fileName,
-        path.join(process.cwd(), "public/avatars", originalname)
-      );
+    await fs.rename(fileName, path.join(process.cwd(), "public/avatars", originalname));
 
-      const avatarURL = path.join(
-        process.cwd(),
-        "public/avatars",
-        originalname
-      );
-      const cleanAvatarURL = avatarURL.replace(/\\/g, "/");
+    const avatarURL = path.join(process.cwd(), "public/avatars", originalname);
+    const cleanAvatarURL = avatarURL.replace(/\\/g, "/");
 
-      const user = await userController.updateAvatar(email, cleanAvatarURL);
-      res.status(200).json(user);
-    } catch (error) {
-      next(error);
-      return res.status(500).json({ message: "Server error" });
-    }
+    const user = await userController.updateAvatar(email, cleanAvatarURL);
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+    return res.status(500).json({ message: "Server error" });
   }
-);
+});
 
 router.get("/verify/:verificationToken", async (req, res, next) => {
   try {

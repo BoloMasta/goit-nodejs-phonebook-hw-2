@@ -1,6 +1,7 @@
 const request = require("supertest");
 const app = require("../app");
 const { User } = require("../models/user");
+const { default: mongoose } = require("mongoose");
 
 const newUser = {
   email: "testjestexamplemail@testjest.pl",
@@ -91,6 +92,7 @@ describe("Test the users routes", () => {
 
   afterAll(async () => {
     await User.findOneAndRemove({ email: newUser.email });
+    mongoose.connection.close();
     loginToken = "";
   });
 });
