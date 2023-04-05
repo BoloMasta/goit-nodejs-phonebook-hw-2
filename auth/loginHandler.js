@@ -9,7 +9,11 @@ const loginHandler = async (email, password) => {
     throw new Error("Invalid login data");
   }
 
-  const result = bcrypt.compareSync(password, user.password);
+  if (!user.verify) {
+    throw new Error("Email not verified");
+  }
+
+  const result = await bcrypt.compare(password, user.password);
   if (result) {
     return issueToken(user);
   } else {

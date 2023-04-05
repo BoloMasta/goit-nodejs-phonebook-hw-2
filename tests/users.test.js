@@ -4,7 +4,7 @@ const { User } = require("../models/user");
 const { default: mongoose } = require("mongoose");
 
 const newUser = {
-  email: "testjestexamplemail@testjest.pl",
+  email: "testjestexamplemail@test.pl",
   password: "password",
 };
 
@@ -38,6 +38,18 @@ describe("Test the users routes", () => {
     const response = await request(app).post("/api/users/signup").send(newUser);
     expect(response.statusCode).toBe(409);
     expect(response.body.message).toBe("Email in use");
+  });
+
+  test("Test GET for users/verify/:verificationToken with wrong token", async () => {
+    const response = await request(app).get("/api/users/verify/wrongtoken");
+    expect(response.statusCode).toBe(404);
+    expect(response.body.message).toBe("User not found");
+  });
+
+  test("Test GET for users/verify/:verificationToken", async () => {
+    const response = await request(app).get(`/api/users/verify/${verifyTestToken}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.message).toBe("Verification successful");
   });
 
   test("Test POST for users/login without user data", async () => {
@@ -94,21 +106,10 @@ describe("Test the users routes", () => {
     expect(response.body.message).toBe("No token, authorization denied");
   });
 
-  test("Test GET for users/verify/:verificationToken with wrong token", async () => {
-    const response = await request(app).get("/api/users/verify/wrongtoken");
-    expect(response.statusCode).toBe(404);
-    expect(response.body.message).toBe("User not found");
-  });
-
-  test("Test GET for users/verify/:verificationToken", async () => {
-    const response = await request(app).get(`/api/users/verify/${verifyTestToken}`);
-    expect(response.statusCode).toBe(200);
-    expect(response.body.message).toBe("Verification successful");
-  });
-
   afterAll(async () => {
     await User.findOneAndRemove({ email: newUser.email });
     mongoose.connection.close();
     loginToken = "";
+    verifyTestToken = "";
   });
 });
