@@ -4,7 +4,7 @@ const { User } = require("../models/user");
 const { default: mongoose } = require("mongoose");
 
 const newUser = {
-  email: "testjestexamplemail@test.pl",
+  email: "testJestExamplEmail@test.pl",
   password: "password",
 };
 
@@ -38,6 +38,26 @@ describe("Test the users routes", () => {
     const response = await request(app).post("/api/users/signup").send(newUser);
     expect(response.statusCode).toBe(409);
     expect(response.body.message).toBe("Email in use");
+  });
+
+  test("Test POST for users/verify without email in body", async () => {
+    const response = await request(app).post("/api/users/verify");
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Missing required field email");
+  });
+
+  test("Test POST for users/verify with wrong email in body", async () => {
+    const response = await request(app)
+      .post("/api/users/verify")
+      .send({ email: "testJestWrongExamplEmail@test.pl" });
+    expect(response.statusCode).toBe(404);
+    expect(response.body.message).toBe("User not found");
+  });
+
+  test("Test POST for users/verify with correct email in body", async () => {
+    const response = await request(app).post("/api/users/verify").send({ email: newUser.email });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.message).toBe("Verification email sent");
   });
 
   test("Test GET for users/verify/:verificationToken with wrong token", async () => {
