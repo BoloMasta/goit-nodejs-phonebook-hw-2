@@ -4,6 +4,9 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
+const nodemailer = require("nodemailer");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const userController = require("../../controllers/userController");
 const { validateCreateUser, validateUpdateSubscription } = require("../../models/user");
@@ -38,6 +41,34 @@ router.post("/signup", async (req, res, next) => {
     }
 
     const newUser = await userController.createUser(req.body);
+
+    const transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.USER_MAIL,
+        pass: process.env.USER_PASS,
+      },
+    });
+
+    const html = `
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 300px; background-color: #777777; font-family: sans-serif; font-size: 1.5rem; border: 1px solid #777777; border-radius: 10px;">
+    <h1>Verification</h1>
+    <p>Click on the link below to verify your account</p>
+    <a href='http://localhost:3000/api/users/verify/${newUser.verifyToken}' target='_blank'>VERIFY</a>
+    </div>`;
+
+    const emailOptions = {
+      from: '"BoloMasta 🖥️" <test@test.pl>',
+      to: [`${email}`],
+      subject: "Verification ✔",
+      text: "Mail with verification link",
+      html,
+    };
+
+    await transporter.sendMail(emailOptions);
+
     res.status(201).json(newUser);
   } catch (error) {
     next(error);
@@ -103,6 +134,72 @@ router.patch("/avatars", auth, upload.single("avatar"), async (req, res, next) =
 
     const user = await userController.updateAvatar(email, cleanAvatarURL);
     res.status(200).json(user);
+  } catch (error) {
+    next(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/verify", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Missing required field email" });
+    }
+
+    const user = await userController.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.verify) {
+      return res.status(400).json({ message: "Verification has already been passed" });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.USER_MAIL,
+        pass: process.env.USER_PASS,
+      },
+    });
+
+    const html = `
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 300px; background-color: #777777; font-family: sans-serif; font-size: 1.5rem; border: 1px solid #777777; border-radius: 10px;">
+    <h1>Verification</h1>
+    <p>Click on the link below to verify your account</p>
+    <a href='http://localhost:3000/api/users/verify/${user.verifyToken}' target='_blank'>VERIFY</a>
+    </div>`;
+
+    const emailOptions = {
+      from: '"BoloMasta 🖥️" <test@test.pl>',
+      to: [`${email}`],
+      subject: "Verification ✔",
+      text: "Mail with verification link",
+      html,
+    };
+
+    await transporter.sendMail(emailOptions);
+
+    res.status(200).json({ message: "Verification email sent" });
+  } catch (error) {
+    next(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/verify/:verificationToken", async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+    const user = await userController.verifyUser(verificationToken);
+
+    if (user) {
+      return res.status(200).json({ message: "Verification successful" });
+    } else {
+      return res.status(404).json({ message: "User not found" });
+    }
   } catch (error) {
     next(error);
     return res.status(500).json({ message: "Server error" });
